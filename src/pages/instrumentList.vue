@@ -27,13 +27,13 @@
                 <div class="search-result-view-left-title">箱码号：{{ item.box_num }}</div>
                 <div class="search-result-view-left-title" style="color:red;">管数：{{ item.system_sum }}</div>
                 <div class="search-result-view-left-title">转运时间：{{ item.convey_time }}</div>
-                <div class="search-result-view-left-title">采样点名称：{{ item.channel_name }}</div>
+                <div class="search-result-view-left-title">采样点：{{ item.channel_name }}</div>
               </div>
               <div class="search-result-view-left">
                 <div
                   class="search-result-view-left-lable"
                   style="margin-top: 0px;"
-                  :style="item.is_receive == 0 ? 'color:red;': 'color:#999999;'">{{ item.is_receive == 0 ? '未接收' : '已接收'}}</div>
+                  :style="item.is_receive == 0 ? 'color:red;': 'color:#999999;'">{{ item.is_receive == 0 ? '转运中' : '已接收'}}</div>
               </div>
             </div>
           </div>
@@ -66,12 +66,12 @@
           <div class="dialog_item_lable" style="width:60%;">{{bindInfo.system_sum}}</div>
         </div>
         <div class="flex-between">
-          <div class="dialog_item_lable" style="width:30%;text-align: end;">采样点名称：</div>
+          <div class="dialog_item_lable" style="width:30%;text-align: end;">采样点：</div>
           <div class="dialog_item_lable" style="width:60%;">{{bindInfo.channel_name}}</div>
         </div>
         <div class="flex-between">
           <div class="dialog_item_lable" style="width:30%;text-align: end;">状态：</div>
-          <div class="dialog_item_lable" style="width:60%;">{{bindInfo.is_receive == 0 ? '未接收' : '已接收'}}</div>
+          <div class="dialog_item_lable" style="width:60%;">{{bindInfo.is_receive == 0 ? '转运中' : '已接收'}}</div>
         </div>
         <div class="flex-between">
           <div class="dialog_item_lable" style="width:30%;text-align: end;">转运人员：</div>
@@ -110,7 +110,7 @@
 
 <script>
 import Header from "../components/header.vue";
-import { getJSSDKHELP,getConveyList,conveyScan } from "../request/api";
+import { getJSSDKHELP,getConveyList,conveyScan,getCheckedUserId } from "../request/api";
 import { Notify,Toast,List,Button,Dialog } from "vant";
 import wx from 'jweixin-module';
 export default {
@@ -147,12 +147,33 @@ export default {
     console.log(this.userId)
     this.page = 1;
     this.instrumentList = [];
-    this.getConveyList();
+    this.getCheckedUserId(1);
   },
   mounted() {
     this.isWechat();
   },
   methods: {
+    getCheckedUserId(typeNumber){
+        let that = this;
+        getCheckedUserId({
+          userId: this.userId
+        }).then((res) => {
+          console.log(res)
+          if (res.data.success) {
+            if(typeNumber == 1){
+              that.getConveyList();
+            }else if(typeNumber == 2){
+              that.getScanQRCodeClick();
+            } else if (typeNumber == 3){
+              that.isInput = true;
+            }
+          } else {
+            localStorage.clear();
+            Toast(res.data.msg);
+            that.$router.back();
+          }
+        });
+    },
     isWechat() {
       const ua = window.navigator.userAgent.toLowerCase();
       if (ua.match(/micromessenger/i) == 'micromessenger') {
@@ -209,7 +230,10 @@ export default {
       }
     },
    // 扫描
-    scanQRCodeClick() {	// 点击的时候调起扫一扫功能呢
+   scanQRCodeClick() {
+     this.getCheckedUserId(2);
+   },
+    getScanQRCodeClick() {	// 点击的时候调起扫一扫功能呢
       const that = this;
       wx.scanQRCode({
         needResult: 1, // 默认为0，扫描结果由微信处理，1则直接返回扫描结果，
@@ -257,7 +281,7 @@ export default {
         that.isShow = false;
         that.page = 1;
         that.instrumentList = [];
-        that.getConveyList();
+        that.getCheckedUserId(1);
         done()
       } else if(action === 'cancel') {
         that.bindInfo = '';
@@ -300,7 +324,7 @@ export default {
     onDownLoad(){
       console.log(this.page)
       if(this.page > 1){
-        this.getConveyList();
+        this.getCheckedUserId(1);
       }
     },
     onRefresh(){
@@ -311,10 +335,10 @@ export default {
       // 重新加载数据
       // 将 loading 设置为 true，表示处于加载状态
       this.loading = true;
-      this.getConveyList();
+      this.getCheckedUserId(1);
     },
     inputClick(){
-      this.isInput = true;
+      this.getCheckedUserId(3);
     },
     beforeClose1(action, done) {
       let that = this;

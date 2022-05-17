@@ -18,6 +18,7 @@ export const getConveyList = val => requestH5Other('/convey/getConveyList.hn', v
 
 export const conveyScan = val => requestH5Other('/convey/conveyScan.hn', val, 'get'); // // 转运员扫箱码操作
 
+export const getCheckedUserId = val => requestH5Other('/convey/isDelete.hn', val, 'get'); // // 转运员账号检测
 
 
 
