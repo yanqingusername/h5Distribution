@@ -157,7 +157,8 @@ export default {
           console.log(res)
           if (res.data.success) {
             Toast(res.data.msg)
-            localStorage.setItem('conveyPhone',this.phone)
+            localStorage.setItem('conveyPhone',this.phone);
+            localStorage.setItem('conveyPassword',this.code)
             this.$router.push({
                 path: "/instrumentList",
                 query:{id: res.data.roleId,name: res.data.name,userId: res.data.userId}
@@ -176,12 +177,18 @@ export default {
     },
     getAutoLogin(){
       let phone = localStorage.getItem('conveyPhone');
-      if(phone){
+      let password = localStorage.getItem('conveyPassword');
+      if(phone && password){
+        this.phone = phone;
+        this.code = password;
         getAutoLogin({
-          phone: phone
+          phone: phone,
+          password: password
         }).then((res) => {
           console.log(res)
           if (res.data.success) {
+            this.phone = '';
+            this.code = '';
             Toast(res.data.msg)
             this.$router.push({
                 path: "/instrumentList",

@@ -170,7 +170,9 @@ export default {
           } else {
             localStorage.clear();
             Toast(res.data.msg);
-            that.$router.back();
+            setTimeout(()=>{
+              that.$router.back();
+            },1200)
           }
         });
     },
