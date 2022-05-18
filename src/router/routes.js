@@ -6,6 +6,7 @@ import Login from '../pages/login/login.vue'
 // import Task from '../pages/task/task.vue'
 import Page404 from '../pages/page404/index.vue'
 import instrumentList from '../pages/instrumentList.vue'
+import instrumentPDF from '../pages/instrumentPDF.vue'
 
 
 const routes = [{
@@ -40,6 +41,10 @@ const routes = [{
     {
         path:"/instrumentList",
         component: instrumentList
+    },
+    {
+        path:"/instrumentPDF",
+        component: instrumentPDF
     },
     {
         path: '/',

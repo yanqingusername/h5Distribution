@@ -14,8 +14,8 @@ module.exports = {
     devServer: {
         proxy: {
             '/lis_alarm': {
-                // target: 'https://lisalarm.coyotebio-lab.com',
-                target: 'https://scldev.coyotebio-lab.com:8443',
+                target: 'https://lisalarm.coyotebio-lab.com',
+                // target: 'https://scldev.coyotebio-lab.com:8443',
                 changeOrigin: true,
                 pathRewrite:{
                     '^/lis_alarm': '/lis_alarm'

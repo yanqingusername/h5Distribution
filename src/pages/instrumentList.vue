@@ -11,6 +11,8 @@
       </div>
     </Header> -->
     <div class="main">
+      <div class="item_center" @click.stop="clickPDF">样本箱转运系统使用说明</div>
+
        <div class="search-list-role">
           <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
           <van-list
@@ -153,6 +155,12 @@ export default {
     this.isWechat();
   },
   methods: {
+    clickPDF() {
+      this.$router.push({
+        path: "/instrumentPDF"
+      });
+      return;
+    },
     getCheckedUserId(typeNumber){
         let that = this;
         getCheckedUserId({
