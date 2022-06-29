@@ -11,7 +11,59 @@
       </div>
     </Header> -->
     <div class="main">
-      <div class="item_center" @click.stop="clickPDF">样本箱转运系统使用说明</div>
+      <!-- <div class="seach-form-item">
+        <img style="width:18px;height:18px;" src="../assets/images/search.png" alt="" />
+        <input
+          v-model="keywordValue"
+          type="text"
+          name="keywordValue"
+          placeholder="请输入仪器序列号"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          autofocus
+          ref="searchInput"
+          spellcheck="false"
+          @click="changeInput"
+          @keyup="clickSearch"
+        />
+        <img v-if="keywordValue" @click="clearSearchValue" style="width:18px;height:18px;position:absolute;right:15px;" src="../assets/images/deleteTest.png" alt="" />
+      </div> -->
+      <div class="dis_setting_view" style="background:#FFFFFF;">
+        <form action="/" style="width:100%;">
+          <van-search
+            v-model="keywordValue"
+            show-action
+            placeholder="请输入箱码"
+            @search="onSearch"
+          >
+          <template #action>
+            <div @click="onSearch">搜索</div>
+          </template>
+          </van-search>
+        </form>
+      </div>
+
+      <!-- 暂时注释 -->
+      <!-- <div class="dis_item_center">
+        <div class="dis_item_center_1" @click="clickDateTime">
+          <div class="dis_item_center_2">日期: {{currentDateText}}</div>
+          <van-icon name="arrow-down" size="16"/>
+        </div>
+        <div class="item_center" @click.stop="clickPDF">样本箱转运系统使用说明</div>
+      </div> -->
+
+      <div class="dis_item_center">
+        <div class="dis_item_center_1" @click="clickDateTime">
+          <div class="dis_item_center_2">日期: {{currentDateText}}</div>
+          <van-icon name="arrow-down" size="16"/>
+        </div>
+        <div class="item_center" @click.stop="clickWait">待转运箱</div>
+      </div>
+
+<div class="dis_item_center">
+      <div class="item_center_new" @click.stop="clickPDF">样本箱转运系统使用说明</div>
+      </div>
 
        <div class="search-list-role">
           <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
@@ -23,13 +75,15 @@
         >
           <div
             v-for="(item, index) in instrumentList"
-            :key="index">
+            :key="index" @click="clickTubeInfo(item.box_num)">
             <div class="search-result-view">
               <div class="search-result-view-left">
                 <div class="search-result-view-left-title">箱码号：{{ item.box_num }}</div>
                 <div class="search-result-view-left-title" style="color:red;">管数：{{ item.system_sum }}</div>
                 <div class="search-result-view-left-title">转运时间：{{ item.convey_time }}</div>
                 <div class="search-result-view-left-title">采样点：{{ item.channel_name }}</div>
+                <div class="search-result-view-left-title">接收时间：{{ item.receive_time }}</div>
+                <div class="search-result-view-left-title">接收人：{{ '测试数据' }}</div>
               </div>
               <div class="search-result-view-left">
                 <div
@@ -47,8 +101,8 @@
       
 
       <div class="view_bottom">
-        <div class="view_bottom_left" @click="scanQRCodeClick">扫描箱码号</div>
-        <div class="view_bottom_right" @click="inputClick">输入箱码号</div>
+        <div class="view_bottom_left"  @click="inputClick">输入箱码号</div>
+        <div class="view_bottom_right" @click="scanQRCodeClick">扫描箱码号</div>
       </div>
     </div>
 
@@ -107,6 +161,19 @@
     </div>
     </van-dialog>
 
+     <van-popup v-model="isShowDateTime" round position="bottom">
+     
+     <van-datetime-picker
+  v-model="currentDate"
+  type="date"
+  title="选择年月日"
+  @cancel="dateTimeCancel" 
+  @confirm="dateTimeConfirm"
+  :max-date="maxDate"
+/>
+    </van-popup>
+
+
   </div>
 </template>
 
@@ -137,7 +204,12 @@ export default {
       isInput: false,
       boxCodeNumber: '',
       roleName:'',
-      userId: ''
+      userId: '',
+      keywordValue: "",
+      currentDateText: '',
+      currentDate: new Date(),
+      maxDate: new Date(),
+      isShowDateTime: false,
     };
   },
   activated() {
@@ -147,6 +219,9 @@ export default {
     console.log(this.roleId)
     console.log(this.roleName)
     console.log(this.userId)
+
+    this.currentDateText = this.timeFormat1(this.currentDate);
+
     this.page = 1;
     this.instrumentList = [];
     this.getCheckedUserId(1);
@@ -331,6 +406,34 @@ export default {
         }
       });
     },
+    changeInput() {
+      //单击搜索框时获取焦点
+      this.isFocus = true;
+    },
+    clearSearchValue() {
+      //清空输入的查询条件
+      if (this.keywordValue) {
+        this.keywordValue = ""; //搜索关键字
+        this.page = 1;
+        this.instrumentList = [];
+        this.getCheckedUserId(1);
+        this.$refs.searchInput.focus(); //输入查询条件清空后获取焦点
+      }
+    },
+    clickSearch() {
+      //查询
+      if (event.code == "ArrowDown" || event.code == "ArrowUp") {
+        //上下键
+        return;
+      }
+      // if (this.keywordValue.trim()) {
+            this.page = 1;
+            this.instrumentList = [];
+            this.getCheckedUserId(1);
+      // } else {
+        this.$refs.searchInput.focus(); //没有输入查询条件焦点不应该失去
+      // }
+    },
     onDownLoad(){
       console.log(this.page)
       if(this.page > 1){
@@ -388,6 +491,54 @@ export default {
         }
       
     },
+    onSearch() {
+        console.log(this.keywordValue)
+        
+        this.page = 1;
+        this.instrumentList = [];
+        this.getCheckedUserId(1);
+    },
+    clickDateTime(){
+      this.isShowDateTime = true;
+    },
+    dateTimeCancel(){
+      this.isShowDateTime = false;
+    },
+    dateTimeConfirm(){
+      this.currentDateText = this.timeFormat1(this.currentDate);
+      console.log(this.currentDateText)
+      this.isShowDateTime = false;
+
+      this.page = 1;
+      this.instrumentList = [];
+      this.getCheckedUserId(1);
+    },
+    timeFormat1(time) { // 时间格式化 2019-09-08
+     let year = time.getFullYear();
+     let month = time.getMonth() + 1;
+      if(month<10){
+        month = '0'+month;
+      }
+     let day = time.getDate();
+      if(day<10){
+        day = '0'+day;
+      }
+
+    return year + '-' + month + '-' + day + '';
+     },
+    clickWait(){
+      this.$router.push({
+                path: "/waitDistribution",
+                query:{id: this.roleId,name: this.roleName,userId: this.userId}
+            });
+    },
+    clickTubeInfo(boxnum){
+      console.log('---->:',boxnum)
+      this.$router.push({
+        path: "/tubeInfo",
+        query:{id: this.roleId,name: this.roleName,userId: this.userId,boxnum: boxnum}
+      });
+    }
   },
 };
 </script>
@@ -562,7 +713,13 @@ export default {
 
 .item_center{
   font-size: 32px;
-  padding: 20px;
+  padding: 20px 40px 20px 0px;
+  color: #307ff5;
+}
+
+.item_center_new{
+  font-size: 32px;
+  padding: 0px 0px 0px 30px;
   color: #307ff5;
 }
 
@@ -705,5 +862,63 @@ export default {
   width: 5px;
   background-color: #ffffff;
   -webkit-border-radius: 6px;
+}
+
+.dis_setting_view{
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0px 30px 0px 30px;
+}
+
+.van-search{
+    width: 100% !important;
+    padding: 10px 0px;
+  }
+
+  /**
+  *
+   */
+
+   .dis_item_center{
+  width: 100%;
+      display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #FFFFFF;
+}
+
+.dis_item_center_1{
+  display: flex;
+  padding: 20px 30px;
+  align-items: center;
+  justify-content: center;
+}
+.dis_item_center_2{
+  font-size: 28px;
+}
+
+.seach-form-item {
+  display: flex;
+    height: 88px;
+    position: relative;
+    align-items: center;
+    justify-content: center;
+    background: #f5f5f5;
+    width: 90%;
+
+  input {
+    width: 40%;
+    height: 80px;
+    background: #f5f5f5;
+    border-radius: 12px;
+    border: none;
+    outline: none;
+    font-size: 28px;
+    font-weight: 400;
+    color: #999999;
+    // padding: 0px 25px;
+  }
 }
 </style>

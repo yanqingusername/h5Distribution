@@ -31,6 +31,10 @@
         <!-- <div class="submit_view" @click="commit">登录</div> -->
         <van-button class="submit_view" block type="info" @click="commit">登录</van-button>
       </div>
+
+       <div class="view_bottom">
+        <div class="icon_login_content"  @click="clickRes">注册账号</div>
+      </div>
     </div>
 
     <div class="login-section" v-else>
@@ -61,7 +65,7 @@ export default {
   },
   activated() {},
   mounted() {
-    this.isWechat();
+    // this.isWechat();
     // this.getAutoLogin();
   },
   methods: {
@@ -199,6 +203,12 @@ export default {
           }
         });
       }
+    },
+    clickRes(){
+      this.$router.push({
+        path: "/lisInfoCustom",
+        query:{}
+      });
     }
   },
 };
@@ -295,5 +305,26 @@ export default {
     color: #307ff5;
     line-height: 25px;
   }
+}
+
+.view_bottom {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #FFFFFF;
+  margin-top: 30px;
+}
+
+.view_bottom_left {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 326px;
+  height: 88px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #307ff5;
+  font-size: 34px;
+  color: #307ff5;
 }
 </style>

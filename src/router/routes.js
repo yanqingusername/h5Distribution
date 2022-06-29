@@ -7,6 +7,10 @@ import Login from '../pages/login/login.vue'
 import Page404 from '../pages/page404/index.vue'
 import instrumentList from '../pages/instrumentList.vue'
 import instrumentPDF from '../pages/instrumentPDF.vue'
+import waitDistribution from '../pages/waitDistribution.vue'
+import tubeInfo from '../pages/tubeInfo.vue'
+import lisInfoCustom from '../pages/lisInfoCustom.vue'
+
 
 
 const routes = [{
@@ -45,6 +49,18 @@ const routes = [{
     {
         path:"/instrumentPDF",
         component: instrumentPDF
+    },
+    {
+        path:"/waitDistribution",
+        component: waitDistribution
+    },
+    {
+        path:"/tubeInfo",
+        component: tubeInfo
+    },
+    {
+        path:"/lisInfoCustom",
+        component: lisInfoCustom
     },
     {
         path: '/',
