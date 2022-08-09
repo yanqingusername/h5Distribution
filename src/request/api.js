@@ -21,4 +21,13 @@ export const conveyScan = val => requestH5Other('/convey/conveyScan.hn', val, 'g
 export const getCheckedUserId = val => requestH5Other('/convey/isDelete.hn', val, 'get'); // // 转运员账号检测
 
 
+export const checkboxnum = val => requestH5Other('/convey/checkboxnum.hn', val, 'get'); // // 检测箱码
+
+
+export const getChannelList = val => requestH5Other('/convey/channellist.hn', val, 'get'); // // 采样点列表
+
+
+export const submitDRboxnum = val => requestH5Other('/convey/submitDRboxnum.hn', val, 'get'); // // 东软箱码,试管,采样点提交
+
+
 

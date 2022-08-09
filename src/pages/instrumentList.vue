@@ -25,18 +25,25 @@
             v-for="(item, index) in instrumentList"
             :key="index">
             <div class="search-result-view">
-              <div class="search-result-view-left">
-                <div class="search-result-view-left-title">箱码号：{{ item.box_num }}</div>
+              <div class="search-result-view-left" style="width: 100%;">
+                <!-- <div class="search-result-view-left-title">箱码号：{{ item.box_num }}</div> -->
+                <div class="new-display">
+                  <div class="search-result-view-left-title">箱码号：{{ item.box_num }}</div>
+                   <div
+                    class="search-result-view-left-lable"
+                    style="margin-top: 0px;"
+                    :style="item.is_receive == 0 ? 'color:red;': 'color:#999999;'">{{ item.is_receive == 0 ? '转运中' : '已接收'}}</div>
+                </div>
                 <div class="search-result-view-left-title" style="color:red;">管数：{{ item.system_sum }}</div>
                 <div class="search-result-view-left-title">转运时间：{{ item.convey_time }}</div>
                 <div class="search-result-view-left-title">采样点：{{ item.channel_name }}</div>
               </div>
-              <div class="search-result-view-left">
+              <!-- <div class="search-result-view-left">
                 <div
                   class="search-result-view-left-lable"
                   style="margin-top: 0px;"
                   :style="item.is_receive == 0 ? 'color:red;': 'color:#999999;'">{{ item.is_receive == 0 ? '转运中' : '已接收'}}</div>
-              </div>
+              </div> -->
             </div>
           </div>
         </van-list>
@@ -47,8 +54,8 @@
       
 
       <div class="view_bottom">
-        <div class="view_bottom_left" @click="scanQRCodeClick">扫描箱码号</div>
-        <div class="view_bottom_right" @click="inputClick">输入箱码号</div>
+        <div class="view_bottom_left" @click="inputClick">输入箱码号</div>
+        <div class="view_bottom_right" @click="scanQRCodeClick">扫描箱码号</div>
       </div>
     </div>
 
@@ -107,12 +114,56 @@
     </div>
     </van-dialog>
 
+    <!-- 东软弹框 -->
+    <van-dialog
+      v-model="isDialogDR"
+      showCancelButton
+      :beforeClose="beforeCloseDR"
+      confirmButtonColor='#307FF5'
+    >
+    <div class="dialog_item">
+        <div class="dialog_item_title">东软箱码号信息</div>
+        <div class="bind_main_item">
+          <div class="form-item">
+            <div class="icon_login_text" style="width:64px;">箱码号：</div>
+            <div class="dialog_item_lable" style="width:210px;font-size: 20px;margin-top: 0px;">{{boxCodeNumber}}</div>
+          </div>
+          <div class="form-item" style="margin-top:20px;">
+            <div class="icon_login_text" style="width:64px;">采样点：</div>
+            <div class="select-item input-item">
+              <el-select v-model="prequalificationUserId" 
+                placeholder="请选择采样点" clearable
+                filterable
+                @blur="selectBlur"
+                @clear="selectClear"
+                @change="selectChange">
+                <el-option v-for="item in prequalificationList" :key="item.channel_id" :label="item.channel_name"
+                          :value="item.channel_id"></el-option>
+                </el-select>
+            </div>
+          </div>
+          <div class="form-item" style="margin-top:20px;">
+            <div class="icon_login_text" style="width:64px;">试管数：</div>
+            <div class="select-item input-item">
+              <input
+                v-model="boxNumber"
+                type="text"
+                name="boxNumber"
+                placeholder="请输入试管数"
+                :onkeyup="boxNumber=boxNumber.replace(/[^\w\.\/]/ig,'')"
+              />
+            </div>
+          </div>
+        </div>
+    </div>
+    </van-dialog>
+
   </div>
 </template>
 
 <script>
 import Header from "../components/header.vue";
-import { getJSSDKHELP,getConveyList,conveyScan,getCheckedUserId } from "../request/api";
+import { getJSSDKHELP,getConveyList,conveyScan,getCheckedUserId,checkboxnum,getChannelList,submitDRboxnum } from "../request/api";
 import { Notify,Toast,List,Button,Dialog } from "vant";
 import wx from 'jweixin-module';
 export default {
@@ -137,7 +188,24 @@ export default {
       isInput: false,
       boxCodeNumber: '',
       roleName:'',
-      userId: ''
+      userId: '',
+      isDialogDR: false,
+      boxNumber: '',
+      prequalificationUserId: "",
+      prequalificationList:[
+        {
+          "channel_id": '0',
+          "channel_name": '卡尤迪',
+        },
+        {
+          "channel_id": '1',
+          "channel_name": '东软',
+        },
+        {
+          "channel_id": '2',
+          "channel_name": '国会中心',
+        }
+      ]
     };
   },
   activated() {
@@ -150,6 +218,7 @@ export default {
     this.page = 1;
     this.instrumentList = [];
     this.getCheckedUserId(1);
+    this.getChannelList();
   },
   mounted() {
     this.isWechat();
@@ -268,6 +337,23 @@ export default {
      */
     getBindSearch(boxCodeNumber) {
       let that = this;
+      checkboxnum({
+        box_num: boxCodeNumber
+      }).then((res) => {
+        if (res.data.success) {
+          if(res.data.isCoyote == 1){
+            that.setonveyScan(boxCodeNumber);
+          }else{
+            that.isDialogDR = true;
+            // that.getChannelList();
+          }
+        } else {
+            Toast(res.data.msg)
+        }
+      });
+    },
+    setonveyScan(boxCodeNumber){
+      let that = this;
       conveyScan({
         box_num: boxCodeNumber,
         userId: this.userId
@@ -355,22 +441,38 @@ export default {
       
         if(action === 'confirm') {
           if(that.boxCodeNumber){
-            conveyScan({
-              box_num: that.boxCodeNumber,
-              userId: this.userId
+            checkboxnum({
+              box_num: that.boxCodeNumber
             }).then((res) => {
               if (res.data.success) {
-                that.isInput = false;
-                that.boxCodeNumber = "";
-                done();
+                if(res.data.isCoyote == 1){
+                  conveyScan({
+                    box_num: that.boxCodeNumber,
+                    userId: that.userId
+                  }).then((res) => {
+                    if (res.data.success) {
+                      that.isInput = false;
+                      that.boxCodeNumber = "";
+                      done();
 
-                that.bindInfo = {
-                  box_num: res.data.box_num,
-                  system_sum: res.data.system_sum,
-                  channel_name: res.data.channel_name,
-                  is_receive: res.data.is_receive,
+                      that.bindInfo = {
+                        box_num: res.data.box_num,
+                        system_sum: res.data.system_sum,
+                        channel_name: res.data.channel_name,
+                        is_receive: res.data.is_receive,
+                      }
+                      that.isShow = true;
+                    } else {
+                        Toast(res.data.msg)
+                        return done(false);//阻止关闭
+                    }
+                  });
+                }else{
+                  that.isInput = false;
+                  that.isDialogDR = true;
+                  // that.getChannelList();
+                  return done();//阻止关闭
                 }
-                that.isShow = true;
               } else {
                   Toast(res.data.msg)
                   return done(false);//阻止关闭
@@ -386,7 +488,97 @@ export default {
           that.isInput = false;
           done() //关闭
         }
+    },
+    /**
+     * 东软弹框
+     */
+    getChannelList() {
+      let that = this;
+      getChannelList({}).then((res) => {
+        if (res.data.success) {
+          that.prequalificationList = res.data.channelList;
+        } else {
+          Toast(res.data.msg)
+        }
+      });
+    },
+    beforeCloseDR(action, done) {
+      let that = this;
       
+        if(action === 'confirm') {
+          if(that.prequalificationUserId){
+            
+            if(!that.boxNumber){
+              Toast('请输入试管数');
+              return done(false);//阻止关闭
+            }
+
+            const r = /^\+?[0-9][0-9]*$/; // 正整数（可以以0打头）
+            if(!r.test(that.boxNumber)){
+              Toast('试管数只能为数字');
+              return done(false);//阻止关闭
+            }
+            if(that.boxNumber.length > 3){
+              Toast('试管数最多3位数');
+              return done(false);//阻止关闭
+            }
+            let params = {
+              box_num: that.boxCodeNumber,  // 箱码号
+              userId: that.userId,  //userId
+              sampleNumber: that.boxNumber,  // 试管数
+              channel_id: that.prequalificationUserId,  // 采样点ID
+            }
+
+            console.log(params)
+
+            submitDRboxnum(params).then((res) => {
+              if (res.data.success) {
+                that.isDialogDR = false;
+                that.boxCodeNumber = "";
+                that.boxNumber = "";
+                that.prequalificationUserId = "";
+                done();
+
+                that.bindInfo = {
+                  box_num: res.data.box_num,
+                  system_sum: res.data.system_sum,
+                  channel_name: res.data.channel_name,
+                  is_receive: res.data.is_receive,
+                }
+                that.isShow = true;
+              } else {
+                  Toast(res.data.msg)
+                  return done(false);//阻止关闭
+              }
+            });
+          }else{
+            Toast('请选择采样点')
+            return done(false);//阻止关闭
+          }
+        } else if(action === 'cancel') {
+          that.bindInfo = '';
+          that.boxCodeNumber = "";
+          that.boxNumber = "";
+          that.prequalificationUserId = "";
+          that.isDialogDR = false;
+          done() //关闭
+        }
+      
+    },
+    selectBlur(e) {
+      // 意见类型
+      if (e.target.value !== '') {
+        this.channel_id = e.target.value;
+        this.$forceUpdate()   // 强制更新
+      }
+    },
+    selectClear() {
+      this.channel_id = ''
+      this.$forceUpdate()
+    },
+    selectChange(val) {
+      this.channel_id = val
+      this.$forceUpdate()
     },
   },
 };
@@ -465,7 +657,7 @@ export default {
         font-size: 28px;
         font-family: PingFangSC-Regular, PingFang SC;
         font-weight: 400;
-        color: #999999;
+        color: #606266;
         padding-left: 20px;
       }
 
@@ -477,6 +669,59 @@ export default {
   }
 }
 
+/deep/.el-input__inner{
+        width: 420px !important;
+        height: 80px !important;
+        background: #ffffff !important;
+        border-radius: 12px !important;
+        border: 1px solid #DDDDDD !important;
+        outline: none !important;
+        font-size: 28px !important;
+        font-family: PingFangSC-Regular, PingFang SC !important;
+        font-weight: 400 !important;
+        padding-left: 20px !important;
+    }
+      
+      /deep/.el-input__icon{
+      width: 50px !important;
+    }
+
+    /deep/.placeholderclass{
+      color: #333333;
+    }
+
+
+    .el-select-dropdown__item {
+      display: flex;
+    /* justify-content: center; */
+    align-items: center;
+      font-size: 24px;
+      padding: 30px 20px;
+      position: relative;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: #606266;
+      -webkit-box-sizing: border-box;
+      box-sizing: border-box;
+      cursor: pointer;
+    }
+
+    /deep/.el-input__inner::placeholder {
+  color:  #606266;
+}
+/* 谷歌 */
+/deep/.el-input__inner::-webkit-input-placeholder {
+  color:  #606266;
+}
+/* 火狐 */
+/deep/.el-input__inner:-moz-placeholder {
+  color:  #606266;
+}
+/*ie*/
+/deep/.el-input__inner:-ms-input-placeholder {
+  color:  #606266;
+}
 
 .submit_view {
   display: flex;
@@ -564,6 +809,12 @@ export default {
   font-size: 32px;
   padding: 20px;
   color: #307ff5;
+}
+
+.new-display{
+  display: flex;
+        align-items: center;
+      justify-content: space-between;
 }
 
 .search-list-role{

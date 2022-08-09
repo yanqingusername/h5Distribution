@@ -12,6 +12,9 @@ import store from './store/index'
 // 移动端适配
 import 'lib-flexible'
 
+import ElementUI from 'element-ui';
+import 'element-ui/lib/theme-chalk/index.css';
+
 import moment from 'moment'
 import _ from 'lodash'
 // 全局样式
@@ -32,6 +35,8 @@ Vue.prototype.$lodash = _
 
 Vue.use(Vant)
 Locale.use('zh-CN', zhCN)
+
+Vue.use(ElementUI);
 
 Vue.use(VueEasytable);
 Vue.use(PullRefresh);
