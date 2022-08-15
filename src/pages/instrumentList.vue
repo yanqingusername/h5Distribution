@@ -126,7 +126,16 @@
         <div class="bind_main_item">
           <div class="form-item">
             <div class="icon_login_text" style="width:64px;">箱码号：</div>
-            <div class="dialog_item_lable" style="width:210px;font-size: 20px;margin-top: 0px;">{{boxCodeNumber}}</div>
+            <!-- <div class="dialog_item_lable" style="width:210px;font-size: 20px;margin-top: 0px;">{{boxCodeNumber}}</div> -->
+            <div class="select-item input-item">
+              <input
+                v-model="boxCodeNumber"
+                type="text"
+                name="boxCodeNumber"
+                placeholder="请输入箱码号"
+                :onkeyup="boxCodeNumber=boxCodeNumber.replace(/[^\w\.\/]/ig,'')"
+              />
+            </div>
           </div>
           <div class="form-item" style="margin-top:20px;">
             <div class="icon_login_text" style="width:64px;">采样点：</div>
@@ -192,20 +201,7 @@ export default {
       isDialogDR: false,
       boxNumber: '',
       prequalificationUserId: "",
-      prequalificationList:[
-        {
-          "channel_id": '0',
-          "channel_name": '卡尤迪',
-        },
-        {
-          "channel_id": '1',
-          "channel_name": '东软',
-        },
-        {
-          "channel_id": '2',
-          "channel_name": '国会中心',
-        }
-      ]
+      prequalificationList:[]
     };
   },
   activated() {
@@ -506,53 +502,68 @@ export default {
       let that = this;
       
         if(action === 'confirm') {
-          if(that.prequalificationUserId){
-            
-            if(!that.boxNumber){
-              Toast('请输入试管数');
-              return done(false);//阻止关闭
-            }
-
-            const r = /^\+?[0-9][0-9]*$/; // 正整数（可以以0打头）
-            if(!r.test(that.boxNumber)){
-              Toast('试管数只能为数字');
-              return done(false);//阻止关闭
-            }
-            if(that.boxNumber.length > 3){
-              Toast('试管数最多3位数');
-              return done(false);//阻止关闭
-            }
-            let params = {
-              box_num: that.boxCodeNumber,  // 箱码号
-              userId: that.userId,  //userId
-              sampleNumber: that.boxNumber,  // 试管数
-              channel_id: that.prequalificationUserId,  // 采样点ID
-            }
-
-            console.log(params)
-
-            submitDRboxnum(params).then((res) => {
-              if (res.data.success) {
-                that.isDialogDR = false;
-                that.boxCodeNumber = "";
-                that.boxNumber = "";
-                that.prequalificationUserId = "";
-                done();
-
-                that.bindInfo = {
-                  box_num: res.data.box_num,
-                  system_sum: res.data.system_sum,
-                  channel_name: res.data.channel_name,
-                  is_receive: res.data.is_receive,
-                }
-                that.isShow = true;
-              } else {
-                  Toast(res.data.msg)
-                  return done(false);//阻止关闭
+          if(that.boxCodeNumber){
+            const r1 = /^\+?[0-9][0-9]*$/; // 正整数（可以以0打头）
+              if(!r1.test(that.boxCodeNumber)){
+                Toast('箱码号只能为数字');
+                return done(false);//阻止关闭
               }
-            });
+              if(that.boxCodeNumber.length > 10){
+                Toast('箱码号最多10位数');
+                return done(false);//阻止关闭
+              }
+
+            if(that.prequalificationUserId){
+              
+              if(!that.boxNumber){
+                Toast('请输入试管数');
+                return done(false);//阻止关闭
+              }
+
+              const r = /^\+?[0-9][0-9]*$/; // 正整数（可以以0打头）
+              if(!r.test(that.boxNumber)){
+                Toast('试管数只能为数字');
+                return done(false);//阻止关闭
+              }
+              if(that.boxNumber.length > 3){
+                Toast('试管数最多3位数');
+                return done(false);//阻止关闭
+              }
+              let params = {
+                box_num: that.boxCodeNumber,  // 箱码号
+                userId: that.userId,  //userId
+                sampleNumber: that.boxNumber,  // 试管数
+                channel_id: that.prequalificationUserId,  // 采样点ID
+              }
+
+              console.log(params)
+
+              submitDRboxnum(params).then((res) => {
+                if (res.data.success) {
+                  that.isDialogDR = false;
+                  that.boxCodeNumber = "";
+                  that.boxNumber = "";
+                  that.prequalificationUserId = "";
+                  done();
+
+                  that.bindInfo = {
+                    box_num: res.data.box_num,
+                    system_sum: res.data.system_sum,
+                    channel_name: res.data.channel_name,
+                    is_receive: res.data.is_receive,
+                  }
+                  that.isShow = true;
+                } else {
+                    Toast(res.data.msg)
+                    return done(false);//阻止关闭
+                }
+              });
+            }else{
+              Toast('请选择采样点')
+              return done(false);//阻止关闭
+            }
           }else{
-            Toast('请选择采样点')
+            Toast('请输入箱码号')
             return done(false);//阻止关闭
           }
         } else if(action === 'cancel') {
