@@ -337,6 +337,7 @@ export default {
         box_num: boxCodeNumber
       }).then((res) => {
         if (res.data.success) {
+          that.boxCodeNumber = boxCodeNumber;
           if(res.data.isCoyote == 1){
             that.setonveyScan(boxCodeNumber);
           }else{
