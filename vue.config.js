@@ -1,5 +1,6 @@
 const { postcss } = require('./src/config/pxtorem')
 module.exports = {
+    publicPath: '',
     outputDir:"dist",
     css: {
         loaderOptions: {

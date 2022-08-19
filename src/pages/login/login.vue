@@ -15,11 +15,16 @@
             :oninput="phone = (phone.length > 11 ? phone.slice(0, 11) : phone)"
             placeholder="请输入手机号码"
           />
-          <!-- <div class="get_code" @click="btnClick">
-            {{ codeRestTime ? `${codeRestTime}S` : "获取验证码" }}
-          </div> -->
         </div>
         <div class="form-item" style="margin-top: 20px">
+          <input
+            v-model="username"
+            type="text"
+            name="username"
+            placeholder="请输入姓名"
+          />
+        </div>
+        <!-- <div class="form-item" style="margin-top: 20px">
           <input
             v-model="code"
             type="password"
@@ -27,8 +32,7 @@
             placeholder="请输入密码"
             :oninput="code = (code.length > 6 ? code.slice(0, 6) : code)"
           />
-        </div>
-        <!-- <div class="submit_view" @click="commit">登录</div> -->
+        </div> -->
         <van-button class="submit_view" block type="info" @click="commit">登录</van-button>
       </div>
     </div>
@@ -56,21 +60,55 @@ export default {
       phoneCode: ["", ""], //正确的 手机号 和 验证码
       phoneSub: "",
       codeSub: "",
-      isShowWechat: true
+      isShowWechat: true,
+      wxcode: '',
+      username: '',
+      openid: ''
     };
   },
   activated() {},
   mounted() {
     this.isWechat();
-    // this.getAutoLogin();
   },
   methods: {
+    getUrlCode() {
+      // 截取url中的code方法
+      var url = location.search;
+      var theRequest = new Object();
+      if (url.indexOf("?") != -1) {
+        var str = url.substr(1);
+        var strs = str.split("&");
+        for (var i = 0; i < strs.length; i++) {
+          theRequest[strs[i].split("=")[0]] = strs[i].split("=")[1];
+        }
+      }
+      console.log(theRequest);
+      return theRequest;
+    },
     isWechat() {
       const ua = window.navigator.userAgent.toLowerCase();
       if (ua.match(/micromessenger/i) == 'micromessenger') {
         console.log('微信浏览器');
         this.isShowWechat = true;
-        this.getAutoLogin();
+        let appid = "wx838527cc11066732"; //微信APPid
+        let wxcode = this.getUrlCode().code; //是否存在code
+        // let local = 'https://lisalarm.coyotebio-lab.com/index.html';
+        let local = window.location.href
+        if (wxcode == null || wxcode === "") {
+          //不存在就打开上面的地址进行授权
+          window.location.href =
+            "https://open.weixin.qq.com/connect/oauth2/authorize?appid=" +
+            appid +
+            "&redirect_uri=" +
+            encodeURIComponent(local) +
+            "&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect";
+
+            // https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx838527cc11066732&redirect_uri=https://lisalarm.coyotebio-lab.com/paiban/index.html&response_type=code&scope=snsapi_base&state=STATE#wechat_redirect
+
+        } else {
+          this.wxcode = wxcode;
+          this.getAutoLogin();
+        }
         return true;
       } else {
         this.isShowWechat = false;
@@ -133,10 +171,10 @@ export default {
         Toast('手机号有误')
           // Notify({ type: 'danger', message: '手机号有误'});
         return;
-      // } else if (this.code == "") {
-      //   Toast('请填写验证码')
-      //     // Notify({ type: 'danger', message: '请填写验证码'});
-      //   return;
+      } else if (this.username == "") {
+        Toast('请输入姓名')
+          // Notify({ type: 'danger', message: '请填写验证码'});
+        return;
       // } else if (this.phoneSub == "") {
       //   Toast('请获取验证码')
       //   // Notify({ type: 'danger', message: '请获取验证码'});
@@ -150,55 +188,48 @@ export default {
       //     // Notify({ type: 'danger', message: '验证码错误'});
       //   return;
       } else {
+        // 登录接口
+        // http://lisalarm.coyotebio-lab.com/lis_alarm/conveyLogin/login.hn?openid=111&user_name=宋彦睿&user_phone=18763278000
         getLogin({
-          phone: this.phone,
-          password: this.code
+          openid: this.openid,
+          user_phone: this.phone,
+          user_name: this.username
         }).then((res) => {
           console.log(res)
           if (res.data.success) {
             Toast(res.data.msg)
-            localStorage.setItem('conveyPhone',this.phone);
-            localStorage.setItem('conveyPassword',this.code)
             this.$router.push({
                 path: "/instrumentList",
-                query:{id: res.data.roleId,name: res.data.name,userId: res.data.userId}
+                query:{name: this.username,userId: res.data.userId}
             });
           } else {
             Toast(res.data.msg)
           }
         });
       }
-    },
-    handleLogin() {
-      this.$router.push({
-        path: "/instrumentList",
-        query:{id: 1 || res.data.roleId}
-      });
     },
     getAutoLogin(){
-      let phone = localStorage.getItem('conveyPhone');
-      let password = localStorage.getItem('conveyPassword');
-      if(phone && password){
-        this.phone = phone;
-        this.code = password;
         getAutoLogin({
-          phone: phone,
-          password: password
+          code: this.wxcode
         }).then((res) => {
           console.log(res)
           if (res.data.success) {
-            this.phone = '';
-            this.code = '';
-            Toast(res.data.msg)
-            this.$router.push({
+            if(res.data.code==200){
+              this.openid = res.data.openid;
+              Toast(res.data.msg)
+
+              this.$router.push({
                 path: "/instrumentList",
-                query:{id: res.data.roleId,name: res.data.name,userId: res.data.userId}
-            });
+                query:{name: res.data.user_name,userId: res.data.userId}
+              });
+            }else{
+              this.openid = res.data.openid;
+              Toast(res.data.msg)
+            }
           } else {
             Toast(res.data.msg)
           }
         });
-      }
     }
   },
 };

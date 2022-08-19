@@ -99,7 +99,7 @@
         <div class="dialog_item_title">箱码号信息</div>
         <div class="bind_main_item">
           <div class="form-item">
-            <div class="icon_login_text">箱码号：</div>
+            <div class="icon_login_text" style="width:64px;">箱码号：</div>
             <div class="select-item input-item">
               <input
                 v-model="boxCodeNumber"
@@ -138,9 +138,20 @@
             </div>
           </div>
           <div class="form-item" style="margin-top:20px;">
+            <div class="icon_login_text" style="width:64px;">区域：</div>
+            <div class="select-item input-item">
+              <el-select v-model="areaId" 
+                placeholder="请选择采样点区域"
+                @change="selectAreaChange">
+                <el-option v-for="item in options" :key="item.label" :label="item.label"
+                          :value="item"></el-option>
+                </el-select>
+            </div>
+          </div>
+          <div class="form-item" style="margin-top:20px;">
             <div class="icon_login_text" style="width:64px;">采样点：</div>
             <div class="select-item input-item">
-              <el-select v-model="prequalificationUserId" 
+              <!-- <el-select v-model="prequalificationUserId" 
                 placeholder="请选择采样点" clearable
                 filterable
                 @blur="selectBlur"
@@ -148,7 +159,20 @@
                 @change="selectChange">
                 <el-option v-for="item in prequalificationList" :key="item.channel_id" :label="item.channel_name"
                           :value="item.channel_id"></el-option>
+                </el-select> -->
+              <el-select v-model="prequalificationUserId" 
+                placeholder="请选择采样点"
+                @focus="selectFocus"
+                @change="selectChange">
+                <el-option v-for="item in channelList" :key="item.channel_id" :label="item.channel_name"
+                          :value="item.channel_id"></el-option>
                 </el-select>
+                <!-- <el-cascader
+                  placeholder="请选择采样点"
+                  v-model="value"
+                  :options="options"
+                  :props="{ expandTrigger: 'hover' }"
+                  @change="handleChange"></el-cascader> -->
             </div>
           </div>
           <div class="form-item" style="margin-top:20px;">
@@ -191,7 +215,6 @@ export default {
       loading: false,
       finished: false,
       refreshing: false,
-      roleId: 1,  
       isShow: false,
       bindInfo:'',
       isInput: false,
@@ -201,14 +224,18 @@ export default {
       isDialogDR: false,
       boxNumber: '',
       prequalificationUserId: "",
-      prequalificationList:[]
-    };
+      prequalificationList:[],
+
+      areaId: '',
+      channelList: [],
+
+        value: [],
+        options: []
+      };
   },
   activated() {
-    this.roleId = this.$route.query.id;
     this.roleName = this.$route.query.name;
     this.userId = this.$route.query.userId;
-    console.log(this.roleId)
     console.log(this.roleName)
     console.log(this.userId)
     this.page = 1;
@@ -220,6 +247,9 @@ export default {
     this.isWechat();
   },
   methods: {
+    handleChange(value) {
+        console.log(value);
+    },
     clickPDF() {
       this.$router.push({
         path: "/instrumentPDF"
@@ -493,7 +523,7 @@ export default {
       let that = this;
       getChannelList({}).then((res) => {
         if (res.data.success) {
-          that.prequalificationList = res.data.channelList;
+          that.options = res.data.channelList;
         } else {
           Toast(res.data.msg)
         }
@@ -545,6 +575,7 @@ export default {
                   that.boxCodeNumber = "";
                   that.boxNumber = "";
                   that.prequalificationUserId = "";
+                  that.areaId = "";
                   done();
 
                   that.bindInfo = {
@@ -572,6 +603,7 @@ export default {
           that.boxCodeNumber = "";
           that.boxNumber = "";
           that.prequalificationUserId = "";
+          that.areaId = "";
           that.isDialogDR = false;
           done() //关闭
         }
@@ -584,12 +616,25 @@ export default {
         this.$forceUpdate()   // 强制更新
       }
     },
+    selectFocus(e) {
+      if (this.areaId){
+          
+      } else {
+        Toast('请先选择采样点区域')
+        return
+      }
+    },
     selectClear() {
       this.channel_id = ''
       this.$forceUpdate()
     },
     selectChange(val) {
       this.channel_id = val
+      this.$forceUpdate()
+    },
+    selectAreaChange(val) {
+      this.areaId = val.label;
+      this.channelList = val.children;
       this.$forceUpdate()
     },
   },
@@ -660,7 +705,7 @@ export default {
       align-items: center;
 
       input {
-        width: 420px;
+        width: 480px;
          height: 80px;
         background: #ffffff;
         border-radius: 12px;
@@ -682,7 +727,7 @@ export default {
 }
 
 /deep/.el-input__inner{
-        width: 420px !important;
+        width: 480px !important;
         height: 80px !important;
         background: #ffffff !important;
         border-radius: 12px !important;
@@ -708,7 +753,8 @@ export default {
     /* justify-content: center; */
     align-items: center;
       font-size: 24px;
-      padding: 30px 20px;
+      height: 90px;
+      // padding: 30px 20px;
       position: relative;
       white-space: nowrap;
       overflow: hidden;
@@ -968,5 +1014,72 @@ export default {
   width: 5px;
   background-color: #ffffff;
   -webkit-border-radius: 6px;
+}
+
+.van-dialog{
+  width: 350px !important;
+}
+.el-cascader-node{
+  height: 60px !important;
+  font-size: 32px !important;
+}
+
+.pc-sel-area-cascader {
+  // 选择面板样式
+  .el-cascader-panel {
+    width: 420px;
+  }
+  .el-cascader-menu__wrap {
+    // 设置选择器省市区分块面板高度
+    height: 300px;
+  }
+  .el-cascader-menu {
+    // 省市区分块右边框
+    border: none;
+  }
+  .el-scrollbar__thumb {
+    // 上下滚动条
+    display: none;
+  }
+  .el-cascader-node {
+    height: 40px;
+  }
+  .el-cascader-node:hover {
+    // 设置鼠标滑过时文字颜色
+    color: #4e5ef1;
+  }
+  .el-cascader-node__label {
+    // 设置文字样式
+    padding: 0 7px;
+    font-size: 14px;
+    font-family: PingFangSC-Regular, PingFang SC;
+    font-weight: 400;
+  }
+  // 文字选中样式及span背景颜色
+  .el-cascader-node.in-active-path,
+  .el-cascader-node.is-active,
+  .el-cascader-node.is-selectable.in-checked-path {
+    color: #4e5ef1;
+  }
+  .el-icon-check {
+    // 去掉选中小对勾
+    display: none;
+  }
+  .el-icon-arrow-right {
+    // 选项去掉右侧小图标
+    display: none;
+  }
+  // 选择器面板边框及圆角设置
+  border-radius: 12px !important;
+  border: 1px solid #f6f7f8 !important;
+  box-shadow: 0px 10px 40px 0px rgba(0, 0, 0, 0.07) !important;
+}
+.pc-sel-area-cascader[x-placement^='bottom'] {
+  // 选择器面板与输入框的距离
+  margin-top: 1px !important;
+}
+.pc-sel-area-cascader[x-placement^='bottom'] .popper__arrow {
+  // 输入框下面小三角形
+  display: none;
 }
 </style>
