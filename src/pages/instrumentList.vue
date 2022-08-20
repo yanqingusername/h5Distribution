@@ -143,7 +143,7 @@
               <el-select v-model="areaId" 
                 placeholder="请选择采样点区域"
                 @change="selectAreaChange">
-                <el-option v-for="item in options" :key="item.label" :label="item.label"
+                <el-option v-for="(item, index) in options" :key="index" :label="item.label"
                           :value="item"></el-option>
                 </el-select>
             </div>
@@ -241,10 +241,10 @@ export default {
     this.page = 1;
     this.instrumentList = [];
     this.getCheckedUserId(1);
-    this.getChannelList();
   },
   mounted() {
     this.isWechat();
+    this.getChannelListFunc();
   },
   methods: {
     handleChange(value) {
@@ -372,7 +372,7 @@ export default {
             that.setonveyScan(boxCodeNumber);
           }else{
             that.isDialogDR = true;
-            // that.getChannelList();
+            // that.getChannelListFunc();
           }
         } else {
             Toast(res.data.msg)
@@ -386,6 +386,7 @@ export default {
         userId: this.userId
       }).then((res) => {
         if (res.data.success) {
+          that.boxCodeNumber = "";
           that.bindInfo = {
             box_num: res.data.box_num,
             system_sum: res.data.system_sum,
@@ -497,7 +498,7 @@ export default {
                 }else{
                   that.isInput = false;
                   that.isDialogDR = true;
-                  // that.getChannelList();
+                  // that.getChannelListFunc();
                   return done();//阻止关闭
                 }
               } else {
@@ -519,11 +520,12 @@ export default {
     /**
      * 东软弹框
      */
-    getChannelList() {
+    getChannelListFunc() {
       let that = this;
       getChannelList({}).then((res) => {
         if (res.data.success) {
           that.options = res.data.channelList;
+          that.$forceUpdate()
         } else {
           Toast(res.data.msg)
         }
@@ -541,6 +543,11 @@ export default {
               }
               if(that.boxCodeNumber.length > 10){
                 Toast('箱码号最多10位数');
+                return done(false);//阻止关闭
+              }
+
+              if(!that.areaId){
+                Toast('请选择采样点区域');
                 return done(false);//阻止关闭
               }
 
@@ -629,12 +636,13 @@ export default {
       this.$forceUpdate()
     },
     selectChange(val) {
-      this.channel_id = val
+      this.prequalificationUserId = val
       this.$forceUpdate()
     },
     selectAreaChange(val) {
       this.areaId = val.label;
       this.channelList = val.children;
+      this.prequalificationUserId = '';
       this.$forceUpdate()
     },
   },
