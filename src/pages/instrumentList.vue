@@ -140,7 +140,7 @@
           <div class="form-item" style="margin-top:20px;">
             <div class="icon_login_text" style="width:64px;">区域：</div>
             <div class="select-item input-item">
-              <el-select v-model="areaId" 
+              <el-select v-model="areaId" popper-class="ovo" @visible-change="ts"
                 placeholder="请选择采样点区域"
                 @change="selectAreaChange">
                 <el-option v-for="(item, index) in options" :key="index" :label="item.label"
@@ -160,7 +160,7 @@
                 <el-option v-for="item in prequalificationList" :key="item.channel_id" :label="item.channel_name"
                           :value="item.channel_id"></el-option>
                 </el-select> -->
-              <el-select v-model="prequalificationUserId" 
+              <el-select v-model="prequalificationUserId" popper-class="ovo" @visible-change="ts"
                 placeholder="请选择采样点"
                 @focus="selectFocus"
                 @change="selectChange">
@@ -247,6 +247,15 @@ export default {
     this.getChannelListFunc();
   },
   methods: {
+    ts(a){
+      if(a){
+        setTimeout(()=>{
+          for(a of document.getElementsByClassName('ovo')){
+            a.style.zIndex = 9999;
+          }
+        },100);
+      }
+    },
     handleChange(value) {
         console.log(value);
     },
