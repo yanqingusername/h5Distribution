@@ -184,6 +184,7 @@
                 name="boxNumber"
                 placeholder="请输入试管数"
                 :onkeyup="boxNumber=boxNumber.replace(/[^\w\.\/]/ig,'')"
+                maxlength="3"
               />
             </div>
           </div>

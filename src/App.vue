@@ -16,6 +16,10 @@ export default {
 }
 </script>
 
-<style>
-
+<style lang="scss" >
+.el-scrollbar {
+  >.el-scrollbar__bar {
+    opacity: 1 !important;
+  }
+}
 </style>

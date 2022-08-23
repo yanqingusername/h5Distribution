@@ -16,14 +16,14 @@
             placeholder="请输入手机号码"
           />
         </div>
-        <div class="form-item" style="margin-top: 20px">
+        <!-- <div class="form-item" style="margin-top: 20px">
           <input
             v-model="username"
             type="text"
             name="username"
             placeholder="请输入姓名"
           />
-        </div>
+        </div> -->
         <!-- <div class="form-item" style="margin-top: 20px">
           <input
             v-model="code"
@@ -171,10 +171,10 @@ export default {
         Toast('手机号有误')
           // Notify({ type: 'danger', message: '手机号有误'});
         return;
-      } else if (this.username == "") {
-        Toast('请输入姓名')
-          // Notify({ type: 'danger', message: '请填写验证码'});
-        return;
+      // } else if (this.username == "") {
+      //   Toast('请输入姓名')
+      //     // Notify({ type: 'danger', message: '请填写验证码'});
+      //   return;
       // } else if (this.phoneSub == "") {
       //   Toast('请获取验证码')
       //   // Notify({ type: 'danger', message: '请获取验证码'});
@@ -193,14 +193,14 @@ export default {
         getLogin({
           openid: this.openid,
           user_phone: this.phone,
-          user_name: this.username
+          // user_name: this.username
         }).then((res) => {
           console.log(res)
           if (res.data.success) {
             Toast(res.data.msg)
             this.$router.push({
                 path: "/instrumentList",
-                query:{name: this.username,userId: res.data.userId}
+                query:{name: res.data.user_name,userId: res.data.userId}
             });
           } else {
             Toast(res.data.msg)
