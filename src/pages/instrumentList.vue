@@ -568,9 +568,9 @@ export default {
                 return done(false);//阻止关闭
               }
 
-              const r = /^\+?[0-9][0-9]*$/; // 正整数（可以以0打头）
+              const r = /^\+?[1-9][1-9]*$/; // 正整数（可以以0打头）
               if(!r.test(that.boxNumber)){
-                Toast('试管数只能为数字');
+                Toast('试管数只能为数字且大于0');
                 return done(false);//阻止关闭
               }
               if(that.boxNumber.length > 3){
