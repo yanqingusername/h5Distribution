@@ -76,7 +76,7 @@ export default {
   },
   activated() {
 
-    this.url = "/storesnew.pdf"; //维修
+    this.url = "/conveynew.pdf"; //维修
     
   },
   mounted() {
